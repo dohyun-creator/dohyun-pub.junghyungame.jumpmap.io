@@ -1,24 +1,1418 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>The Hungry Kitten (더 헝그리 키튼)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- PWA Installation Support -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="apple-touch-icon" href="/cute_cat_icon.png" />
-    <link rel="icon" type="image/png" href="/cute_cat_icon.png" />
-  </head>
-  <body class="bg-slate-950 text-slate-100 selection:bg-cyan-500/20 selection:text-cyan-400">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>The Hungry Kitten: Epic 500-Stage Standalone Edition</title>
+  
+  <!-- 모바일 홈 화면 추가 시 앱처럼 바로 실행되는 PWA 메타 태그 -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- CDN Tailwind CSS 로드 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #030712;
+      color: #ede9fe;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .neon-glow {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+    }
+    .neon-text {
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+    }
+    .retro-grid {
+      background-image: linear-gradient(rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+  </style>
+</head>
+<body class="retro-grid min-h-screen flex flex-col p-4 md:p-6 font-sans">
+  
+  <div class="max-w-4xl w-full mx-auto space-y-4">
+    <!-- 헤더 영역 -->
+    <header class="bg-indigo-950/80 border border-indigo-900/60 rounded-3xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-2xl backdrop-blur-md">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-500 text-indigo-950 rounded-2xl flex items-center justify-center font-bold text-2xl shadow-[0_0_15px_rgba(6,182,212,0.5)] transform -rotate-3 hover:rotate-3 transition-transform">
+          🐱
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl md:text-2xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-400 to-fuchsia-500 uppercase">
+              THE HUNGRY KITTEN
+            </h1>
+            <span class="text-[9px] bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded-full font-black uppercase font-mono tracking-tight">STANDALONE WEB</span>
+          </div>
+          <p class="text-[10px] md:text-xs text-indigo-300 font-medium uppercase tracking-wider mt-0.5">
+            500단계 무제한 전설 점프 게임 (완벽 소장 및 인터넷 없이 무제한 플레이 가능)
+          </p>
+        </div>
+      </div>
+      
+      <!-- 단계 선택기 -->
+      <div class="flex items-center gap-2 bg-indigo-950/90 px-3 py-1.5 rounded-2xl border border-indigo-850/80">
+        <span class="text-[9px] text-indigo-400 font-extrabold uppercase font-mono">Select Stage</span>
+        <select id="stage-picker" onchange="loadCustomStage(this.value)" class="bg-indigo-900/60 text-cyan-400 font-black font-mono text-xs px-2 py-1 rounded-xl border border-indigo-800 outline-none cursor-pointer">
+          <!-- JS에서 채워짐 -->
+        </select>
+      </div>
+    </header>
 
+    <!-- 게임 캔버스 컨테이너 -->
+    <div class="relative bg-indigo-950/30 border border-indigo-850 rounded-4xl p-1 shadow-2xl overflow-hidden backdrop-blur-md">
+      <div class="bg-indigo-950/90 border-b border-indigo-900/40 px-5 py-3 rounded-t-3xl flex items-center justify-between text-xs text-indigo-300 font-mono">
+        <div class="flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>물리 모의실험 및 8비트 사운드 탑재</span>
+        </div>
+        <div class="flex items-center gap-4">
+          <span id="lives-hud" class="font-bold text-pink-400">💖 LIVES: 3</span>
+          <span id="difficulty-badge" class="px-2.5 py-0.5 text-[9px] font-black border uppercase rounded-lg bg-indigo-950/80 tracking-widest">VERY EASY</span>
+        </div>
+      </div>
+      
+      <div class="overflow-hidden bg-indigo-950/50 rounded-b-3xl relative">
+        <canvas id="game-canvas" width="800" height="400" class="w-full h-auto block bg-indigo-950/30"></canvas>
+        
+        <!-- 오버레이 화면들 (시작, 게임오버, 스테이지 클리어) -->
+        <div id="start-overlay" class="absolute inset-0 bg-[#060814]/98 flex flex-col items-center justify-center text-center p-6 z-30">
+          <div class="w-16 h-16 rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 text-indigo-950 flex items-center justify-center mb-4 text-3xl font-bold animate-bounce shadow-[0_0_25px_rgba(34,211,238,0.4)]">
+            🐱
+          </div>
+          <h2 class="text-3xl md:text-5xl font-black italic tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-pink-400 to-fuchsia-500 uppercase filter drop-shadow-[0_0_15px_rgba(236,72,153,0.3)] select-none">
+            THE HUNGRY KITTEN
+          </h2>
+          <p class="text-xs text-indigo-300 font-mono tracking-[0.25em] font-extrabold uppercase mt-1.5 mb-8">오프라인 영구 소장 버전 • DESIGNED by PARK</p>
+          <button onclick="startGame()" class="px-10 py-4 bg-gradient-to-r from-cyan-400 via-pink-500 to-fuchsia-500 text-indigo-950 rounded-2xl font-black italic tracking-tighter text-sm uppercase hover:scale-105 active:scale-95 hover:shadow-[0_0_20px_rgba(236,72,153,0.5)] transition-all cursor-pointer">
+            GAME START!!
+          </button>
+        </div>
+
+        <div id="gameover-overlay" class="absolute inset-0 bg-slate-950/95 hidden flex flex-col items-center justify-center text-center p-6 z-30">
+          <span class="text-4xl animate-pulse">😿</span>
+          <h3 class="text-2xl font-black text-rose-500 uppercase tracking-tighter italic mt-2 text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-red-600">GAME OVER</h3>
+          <p class="text-xs text-slate-400 mt-1 mb-6">아기 고양이가 심연의 낭떠러지로 떨어졌다냐웅...</p>
+          <button onclick="restartLevel()" class="px-6 py-3 bg-indigo-900 border border-indigo-750 hover:bg-slate-800 text-cyan-300 hover:text-white rounded-xl text-xs font-black uppercase cursor-pointer transition-transform hover:scale-105">
+            다시 도전하기 ↻
+          </button>
+        </div>
+
+        <div id="victory-overlay" class="absolute inset-0 bg-[#090518]/95 hidden flex flex-col items-center justify-center text-center p-6 z-30">
+          <span id="victory-emoji" class="text-5xl animate-bounce">🐭</span>
+          <h3 class="text-3xl font-black uppercase tracking-tighter italic text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-emerald-400 mt-3 animate-pulse">STAGE CLEAR!!</h3>
+          <p id="victory-text" class="text-xs text-indigo-200 mt-1 mb-8">치즈 생쥐 포획 완료하고 동력을 충전했다냥!</p>
+          <div class="flex gap-4">
+            <button onclick="restartLevel()" class="px-5 py-2.5 bg-indigo-900/60 border border-indigo-850 text-indigo-300 rounded-xl text-xs font-bold cursor-pointer hover:bg-indigo-900">
+              다시 하기
+            </button>
+            <button onclick="nextLevel()" class="px-7 py-2.5 bg-gradient-to-r from-cyan-400 to-blue-600 text-indigo-950 rounded-xl text-xs font-black italic tracking-tight shadow-md shadow-cyan-500/20 cursor-pointer hover:scale-105 transition-transform">
+              다음 단계로 전진 ➔
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 터치/모바일 가상 컨트롤 패드 -->
+      <div class="grid grid-cols-4 gap-2 mt-3 select-none">
+        <button id="ctrl-left" class="py-3 bg-indigo-950/60 active:bg-cyan-500/20 border border-indigo-900/50 rounded-xl text-center text-indigo-300 active:text-cyan-300 font-extrabold text-[11px] select-none cursor-pointer">◀ Slide L</button>
+        <button id="ctrl-right" class="py-3 bg-indigo-950/60 active:bg-cyan-500/20 border border-indigo-900/50 rounded-xl text-center text-indigo-300 active:text-cyan-300 font-extrabold text-[11px] select-none cursor-pointer">Slide R ▶</button>
+        <button id="ctrl-jump" class="py-3 bg-gradient-to-b from-indigo-900 to-indigo-950 active:from-cyan-900/50 border border-indigo-800/60 rounded-xl text-center text-indigo-200 active:text-cyan-200 font-black text-[11px] select-none cursor-pointer">▲ JUMP</button>
+        <button id="ctrl-dash" class="py-3 bg-indigo-950/60 active:bg-fuchsia-500/25 border border-fuchsia-950/40 rounded-xl text-center text-fuchsia-400 active:text-fuchsia-200 font-black text-[11px] select-none cursor-pointer">⚡ DASH</button>
+      </div>
+    </div>
+
+    <!-- 실시간 물리 설정 대시보드 -->
+    <section class="bg-indigo-950/60 border border-indigo-900/60 p-5 rounded-3xl space-y-4 shadow-xl backdrop-blur-md">
+      <div class="flex items-center gap-2 border-b border-indigo-900/40 pb-2">
+        <span class="text-cyan-400 text-lg">⚙️</span>
+        <h3 class="font-black text-white text-xs uppercase tracking-wider">실시간 중력 및 점프 물리 샌드박스 연구소</h3>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-indigo-300 font-mono text-[11px]">
+            <span>🌌 Gravity (중력 강도)</span>
+            <span id="gravity-val" class="text-cyan-400 font-bold">0.44</span>
+          </div>
+          <input type="range" id="param-gravity" min="0.2" max="0.8" step="0.02" value="0.44" oninput="updatePhysicsParam('gravity', this.value)" class="w-full accent-cyan-400 bg-indigo-900/60 h-1.5 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-indigo-300 font-mono text-[11px]">
+            <span>🚀 Jump Force (3단 도약력)</span>
+            <span id="jump-val" class="text-cyan-400 font-bold">14.0</span>
+          </div>
+          <input type="range" id="param-jump" min="8" max="18" step="0.5" value="14.0" oninput="updatePhysicsParam('jumpForce', this.value)" class="w-full accent-cyan-400 bg-indigo-900/60 h-1.5 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-indigo-300 font-mono text-[11px]">
+            <span>🏃 Run Speed (달리기 속도)</span>
+            <span id="run-val" class="text-cyan-400 font-bold">7.0</span>
+          </div>
+          <input type="range" id="param-run" min="4" max="12" step="0.5" value="7.0" oninput="updatePhysicsParam('runSpeed', this.value)" class="w-full accent-cyan-400 bg-indigo-900/60 h-1.5 rounded-lg appearance-none cursor-pointer">
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-indigo-300 font-mono text-[11px]">
+            <span>⚡ Dash Force (대시 돌진력)</span>
+            <span id="dash-val" class="text-cyan-400 font-bold">15.8</span>
+          </div>
+          <input type="range" id="param-dash" min="10" max="25" step="0.5" value="15.8" oninput="updatePhysicsParam('dashForce', this.value)" class="w-full accent-cyan-400 bg-indigo-900/60 h-1.5 rounded-lg appearance-none cursor-pointer">
+        </div>
+      </div>
+    </section>
+
+    <!-- 하단 조작 안내 패널 -->
+    <footer class="bg-indigo-950/40 border border-indigo-900/60 p-5 rounded-3xl text-xs text-indigo-200 leading-relaxed space-y-3 shadow-lg">
+      <div class="flex items-center gap-2 text-white font-extrabold">
+        <span>🎮 조작 지침</span>
+        <span class="text-[9px] bg-indigo-850 px-2 py-0.5 rounded border border-indigo-800 text-indigo-300">KEYS & GESTURES</span>
+      </div>
+      <p>• <strong class="text-white">PC 키보드 플레이:</strong> 좌우 이동은 <kbd class="px-1.5 py-0.5 bg-slate-800 rounded font-mono text-[10px]">A / D</kbd> 또는 방향키를 누르고, <kbd class="px-1.5 py-0.5 bg-slate-800 rounded font-mono text-[10px]">W / Space</kbd>로 공중 3단 점프를 수행해 보세요. 공중에서 <kbd class="px-1.5 py-0.5 bg-slate-800 rounded font-mono text-[10px]">L-Shift / F</kbd>를 누르면 번개 대시가 시전됩니다.</p>
+      <p>• <strong class="text-white">모바일 / 터치 플레이:</strong> 하단의 터치용 ◀, ▶ 제어 버튼과 ▲ JUMP, ⚡ DASH 가상 물리 패드로 부드럽게 점프 사냥할 수 있습니다! 게임 중 고양이를 손으로 직접 쓰다듬으면 기분 좋은 야옹 소리와 사랑스러운 분홍 하트 불꽃놀이 파편을 뿜어냅니다.</p>
+    </footer>
+  </div>
+
+  <script>
+    // --- 기본 물리 엔진 파라미터 정의 ---
+    const physicsSettings = {
+      gravity: 0.44,
+      jumpForce: 14.0,
+      runSpeed: 7.0,
+      frictionGround: 0.85,
+      frictionAir: 0.98,
+      frictionIce: 0.975,
+      dashForce: 15.8,
+      dashDuration: 10
+    };
+
+    function updatePhysicsParam(key, val) {
+      const parsedVal = parseFloat(val);
+      physicsSettings[key] = parsedVal;
+      
+      if (key === 'gravity') document.getElementById('gravity-val').innerText = parsedVal.toFixed(2);
+      if (key === 'jumpForce') document.getElementById('jump-val').innerText = parsedVal.toFixed(1);
+      if (key === 'runSpeed') document.getElementById('run-val').innerText = parsedVal.toFixed(1);
+      if (key === 'dashForce') document.getElementById('dash-val').innerText = parsedVal.toFixed(1);
+    }
+
+    // --- 게임 핵심 상태 변수 ---
+    let currentStage = 1;
+    let activeLevel = null;
+    let isPlaying = false;
+    let touchMovingLeft = false;
+    let touchMovingRight = false;
+    
+    const player = {
+      x: 60,
+      y: 250,
+      vx: 0,
+      vy: 0,
+      w: 24,
+      h: 24,
+      isGrounded: false,
+      jumpsLeft: 3,
+      dashesLeft: 3,
+      isDashing: false,
+      dashTimer: 0,
+      dashDir: 0,
+      lastDir: 1,
+      lives: 3,
+      activeCheckpointIdx: 0,
+      ridingPlatformId: null
+    };
+
+    const stars = [];
+    const particles = [];
+    const camera = { x: 0, y: 0 };
+    
+    const canvas = document.getElementById('game-canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 패럴랙스 배경용 밤하늘 별 생성
+    for(let i=0; i<65; i++) {
+      stars.push({
+        x: Math.random() * 800,
+        y: Math.random() * 400,
+        size: Math.random() * 2 + 0.5,
+        speed: Math.random() * 0.4 + 0.1
+      });
+    }
+
+    // --- 의사 난수 생성 알고리즘 (일정한 맵 생성을 보장) ---
+    class SeededRandom {
+      constructor(seed) {
+        this.seed = seed;
+      }
+      next() {
+        const x = Math.sin(this.seed++) * 10000;
+        return x - Math.floor(x);
+      }
+      range(min, max) {
+        return Math.floor(this.next() * (max - min + 1)) + min;
+      }
+    }
+
+    // --- PROCEDURAL 500단계 맵 생성 로직 ---
+    function generateStage(stageNum) {
+      const rand = new SeededRandom(stageNum * 1234.567);
+      
+      let difficulty = 'VERY_EASY';
+      if (stageNum >= 51 && stageNum <= 100) difficulty = 'EASY';
+      else if (stageNum >= 101 && stageNum <= 200) difficulty = 'NORMAL';
+      else if (stageNum >= 201 && stageNum <= 300) difficulty = 'HARD';
+      else if (stageNum >= 301 && stageNum <= 400) difficulty = 'CHALLENGE';
+      else if (stageNum >= 401) difficulty = 'IMPOSSIBLE';
+
+      const platforms = [];
+      
+      // 시작 지점 안전 발판
+      platforms.push({
+        id: 'start-ground',
+        x: 0,
+        y: 320,
+        w: 220,
+        h: 80,
+        type: 'normal',
+        color: '#34495e'
+      });
+
+      const spawnPoint = { x: 60, y: 250 };
+      
+      // 중간 체크포인트 1
+      platforms.push({
+        id: 'chk1',
+        x: 740,
+        y: 280,
+        w: 120,
+        h: 120,
+        type: 'checkpoint'
+      });
+
+      // 중간 체크포인트 2
+      platforms.push({
+        id: 'chk2',
+        x: 1440,
+        y: 260,
+        w: 120,
+        h: 140,
+        type: 'checkpoint'
+      });
+
+      // 최종 클리어 발판 및 골인 깃발
+      platforms.push({
+        id: 'goal-ground',
+        x: 2000,
+        y: 300,
+        w: 200,
+        h: 100,
+        type: 'normal',
+        color: '#27ae60'
+      });
+      
+      platforms.push({
+        id: 'goal-flag',
+        x: 2100,
+        y: 220,
+        w: 40,
+        h: 80,
+        type: 'goal'
+      });
+
+      let currentX = 220;
+      const finishX = 2000;
+      let platIdCounter = 0;
+      
+      while (currentX < finishX) {
+        if ((currentX >= 700 && currentX <= 880) || (currentX >= 1400 && currentX <= 1580)) {
+          currentX += 80;
+          continue;
+        }
+
+        platIdCounter++;
+        const id = 'platform-' + stageNum + '-' + platIdCounter;
+        
+        let platformWidth = rand.range(120, 200);
+        let gap = rand.range(90, 150);
+        let heightOffset = rand.range(-30, 30);
+        let targetY = 300 + heightOffset;
+        
+        if (targetY > 350) targetY = 350;
+        if (targetY < 185) targetY = 185;
+
+        let type = 'normal';
+
+        if (difficulty === 'VERY_EASY') {
+          platformWidth = rand.range(150, 220);
+          gap = rand.range(80, 130);
+        } else if (difficulty === 'EASY') {
+          platformWidth = rand.range(110, 160);
+          gap = rand.range(110, 160);
+          if (rand.next() < 0.45) type = 'moving';
+        } else if (difficulty === 'NORMAL') {
+          platformWidth = rand.range(100, 150);
+          gap = rand.range(120, 180);
+          const roll = rand.next();
+          if (roll < 0.3) type = 'ice';
+          else if (roll < 0.6) type = 'disappearing';
+          else if (roll < 0.75) type = 'moving';
+        } else if (difficulty === 'HARD') {
+          platformWidth = rand.range(80, 130);
+          gap = rand.range(130, 200);
+          const roll = rand.next();
+          if (roll < 0.35) type = 'hazard';
+          else if (roll < 0.55) type = 'disappearing';
+          else if (roll < 0.75) type = 'moving';
+          else type = 'ice';
+        } else if (difficulty === 'CHALLENGE') {
+          platformWidth = rand.range(60, 110);
+          gap = rand.range(180, 280);
+          const roll = rand.next();
+          if (roll < 0.3) type = 'hazard';
+          else if (roll < 0.5) type = 'disappearing';
+          else if (roll < 0.7) {
+            type = 'moving';
+            gap = rand.range(200, 300);
+          } else type = 'ice';
+        } else if (difficulty === 'IMPOSSIBLE') {
+          platformWidth = rand.range(35, 75);
+          gap = rand.range(220, 320);
+          const roll = rand.next();
+          if (roll < 0.3) type = 'hazard';
+          else if (roll < 0.6) type = 'disappearing';
+          else if (roll < 0.8) type = 'moving';
+          else type = 'ice';
+        }
+
+        if (type === 'hazard' && currentX < 350) {
+          type = 'normal';
+        }
+
+        let startX = currentX;
+        let startY = targetY;
+        let endX = currentX;
+        let endY = targetY;
+        let speed = 0;
+
+        if (type === 'moving') {
+          const isHorizontal = rand.next() < 0.5;
+          const movementRange = rand.range(60, 150);
+          speed = rand.range(2, 4) * 0.5;
+          
+          if (isHorizontal) {
+            endX = startX + movementRange;
+            platformWidth = Math.max(platformWidth, 100);
+          } else {
+            endY = startY + (rand.next() < 0.5 ? -movementRange : movementRange);
+            if (endY < 140) endY = 140;
+            if (endY > 350) endY = 350;
+          }
+        }
+
+        platforms.push({
+          id: id,
+          x: currentX,
+          y: targetY,
+          w: platformWidth,
+          h: type === 'hazard' ? 18 : 24,
+          type: type,
+          startX: startX,
+          startY: startY,
+          endX: endX,
+          endY: endY,
+          speed: speed,
+          direction: 1,
+          progress: 0,
+          touchedTime: null,
+          vanished: false,
+          opacity: 1
+        });
+
+        // 절벽 바닥 가시 함정 생성
+        if ((difficulty === 'HARD' || difficulty === 'CHALLENGE' || difficulty === 'IMPOSSIBLE') && gap > 160 && rand.next() < 0.7) {
+          platforms.push({
+            id: 'pit-hazard-' + currentX,
+            x: currentX + platformWidth + 10,
+            y: 400 - 25,
+            w: gap - 20,
+            h: 25,
+            type: 'hazard',
+            color: '#ef4444'
+          });
+        }
+
+        currentX += platformWidth + gap;
+      }
+      
+      return {
+        stageNum: stageNum,
+        difficulty: difficulty,
+        platforms: platforms,
+        spawnPoint: spawnPoint,
+        width: finishX + 200,
+        height: 400
+      };
+    }
+
+    // --- Web Audio API 8비트 사운드 신디사이저 ---
+    let audioCtx = null;
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+    } catch (e) {
+      console.warn("AudioContext setup failed or blocked in environment:", e);
+    }
+    
+    function playSoundEffect(type) {
+      if (!audioCtx) return;
+      try {
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+      } catch (e) {}
+      
+      const t = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      if (type === 'jump') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, t);
+        osc.frequency.exponentialRampToValueAtTime(550, t + 0.14);
+        gain.gain.setValueAtTime(0.25, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.14);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.14);
+      } else if (type === 'double') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(320, t);
+        osc.frequency.exponentialRampToValueAtTime(800, t + 0.12);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.12);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.12);
+      } else if (type === 'dash') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(900, t);
+        osc.frequency.exponentialRampToValueAtTime(200, t + 0.18);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.18);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.18);
+      } else if (type === 'death') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, t);
+        osc.frequency.linearRampToValueAtTime(80, t + 0.6);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.6);
+      } else if (type === 'victory') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523, t); // C5
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.2);
+        
+        setTimeout(() => {
+          const osc2 = audioCtx.createOscillator();
+          const gain2 = audioCtx.createGain();
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(784, audioCtx.currentTime); // G5
+          gain2.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain2.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start(); osc2.stop(audioCtx.currentTime + 0.5);
+        }, 120);
+      } else if (type === 'checkpoint') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, t);
+        osc.frequency.setValueAtTime(659, t + 0.08);
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.25);
+      } else if (type === 'meow') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, t);
+        osc.frequency.exponentialRampToValueAtTime(880, t + 0.15);
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.linearRampToValueAtTime(0.001, t + 0.35);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(t); osc.stop(t + 0.35);
+      }
+    }
+
+    // --- 스테이지 전환 및 초기화 ---
+    function loadAndInitStage(stageNum) {
+      currentStage = parseInt(stageNum, 10);
+      activeLevel = generateStage(currentStage);
+      document.getElementById('stage-picker').value = currentStage;
+      document.getElementById('lives-hud').innerText = '💖 LIVES: ' + player.lives;
+      
+      let label = '아주쉬움';
+      let hex = '#10b981';
+      if (activeLevel.difficulty === 'EASY') { label = '쉬움'; hex = '#14b8a6'; }
+      else if (activeLevel.difficulty === 'NORMAL') { label = '보통'; hex = '#06b6d4'; }
+      else if (activeLevel.difficulty === 'HARD') { label = '어려움'; hex = '#f59e0b'; }
+      else if (activeLevel.difficulty === 'CHALLENGE') { label = '챌린지'; hex = '#e11d48'; }
+      else if (activeLevel.difficulty === 'IMPOSSIBLE') { label = '지옥헬'; hex = '#7f1d1d'; }
+      
+      const badge = document.getElementById('difficulty-badge');
+      badge.innerText = label;
+      badge.style.borderColor = hex;
+      badge.style.color = hex;
+
+      player.x = activeLevel.spawnPoint.x;
+      player.y = activeLevel.spawnPoint.y;
+      player.vx = 0;
+      player.vy = 0;
+      player.isGrounded = false;
+      player.jumpsLeft = 3;
+      player.dashesLeft = 3;
+      player.isDashing = false;
+      player.dashTimer = 0;
+      player.activeCheckpointIdx = 0;
+      
+      camera.x = 0;
+      camera.y = 0;
+      particles.length = 0;
+    }
+
+    // 단계 선택기 구성
+    const selector = document.getElementById('stage-picker');
+    for(let i=1; i<=500; i++) {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.innerText = 'STAGE ' + i;
+      selector.appendChild(opt);
+    }
+
+    // 키보드 이벤트 핸들러
+    const keys = {};
+    window.addEventListener('keydown', (e) => {
+      const k = e.key.toLowerCase();
+      keys[k] = true;
+      
+      if (k === 'w' || k === ' ' || e.key === 'ArrowUp') {
+        performJump();
+      }
+      if (k === 'shift' || k === 'f') {
+        performDash();
+      }
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.key.toLowerCase()] = false;
+    });
+
+    // 가상 패드용 버튼 바인딩
+    function bindCtrlButton(id, pressAction, releaseAction) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const handlePress = (e) => {
+        try { e.preventDefault(); } catch(err){}
+        pressAction();
+      };
+      const handleRelease = (e) => {
+        try { e.preventDefault(); } catch(err){}
+        if (releaseAction) releaseAction();
+      };
+
+      el.addEventListener('touchstart', handlePress, { passive: false });
+      if (releaseAction) {
+        el.addEventListener('touchend', handleRelease, { passive: false });
+        el.addEventListener('touchcancel', handleRelease, { passive: false });
+      }
+
+      el.addEventListener('mousedown', handlePress);
+      if (releaseAction) {
+        el.addEventListener('mouseup', handleRelease);
+        el.addEventListener('mouseleave', handleRelease);
+      }
+    }
+
+    bindCtrlButton('ctrl-left', () => { touchMovingLeft = true; }, () => { touchMovingLeft = false; });
+    bindCtrlButton('ctrl-right', () => { touchMovingRight = true; }, () => { touchMovingRight = false; });
+    bindCtrlButton('ctrl-jump', () => { performJump(); });
+    bindCtrlButton('ctrl-dash', () => { performDash(); });
+
+    // 고양이 쓰다듬기(클릭) 인터랙션
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (800 / rect.width) + camera.x;
+      const clickY = (e.clientY - rect.top) * (400 / rect.height) + camera.y;
+
+      if (
+        clickX >= player.x - 10 && clickX <= player.x + player.w + 10 &&
+        clickY >= player.y - 10 && clickY <= player.y + player.h + 10
+      ) {
+        playSoundEffect('meow');
+        for(let i=0; i<15; i++) {
+          particles.push({
+            x: player.x + 12,
+            y: player.y,
+            vx: (Math.random() - 0.5) * 6,
+            vy: -Math.random() * 4 - 1,
+            size: Math.random() * 3 + 3,
+            color: '#f43f5e',
+            life: 30
+          });
+        }
+      }
+    });
+
+    function performJump() {
+      if(!isPlaying) return;
+      if (player.jumpsLeft > 0) {
+        player.vy = -physicsSettings.jumpForce;
+        player.jumpsLeft--;
+        player.isGrounded = false;
+        
+        playSoundEffect(player.jumpsLeft === 2 ? 'jump' : 'double');
+        
+        // 도약 먼지 파티클
+        for (let i = 0; i < 8; i++) {
+          particles.push({
+            x: player.x + 12,
+            y: player.y + 24,
+            vx: (Math.random() - 0.5) * 4,
+            vy: Math.random() * 2 + 1,
+            size: Math.random() * 3 + 1.5,
+            color: 'rgba(34, 211, 238, 0.7)',
+            life: 25
+          });
+        }
+      }
+    }
+
+    function performDash() {
+      if(!isPlaying) return;
+      if (player.dashesLeft > 0 && !player.isDashing) {
+        player.isDashing = true;
+        player.dashTimer = physicsSettings.dashDuration;
+        player.dashesLeft--;
+        
+        let dir = player.lastDir;
+        if (keys['a'] || keys['arrowleft'] || touchMovingLeft) dir = -1;
+        if (keys['d'] || keys['arrowright'] || touchMovingRight) dir = 1;
+        
+        player.dashDir = dir;
+        player.vy = 0;
+        
+        playSoundEffect('dash');
+
+        for(let i=0; i<15; i++) {
+          particles.push({
+            x: player.x + 12,
+            y: player.y + 12,
+            vx: dir * -4 + (Math.random() - 0.5) * 3,
+            vy: (Math.random() - 0.5) * 3,
+            size: Math.random() * 3.5 + 1.5,
+            color: 'rgba(236, 72, 153, 0.8)',
+            life: 30
+          });
+        }
+      }
+    }
+
+    function loadCustomStage(val) {
+      loadAndInitStage(val);
+    }
+
+    function startGame() {
+      try {
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume().catch(() => {});
+        }
+      } catch (e) {}
+      document.getElementById('start-overlay').style.display = 'none';
+      isPlaying = true;
+      playSoundEffect('jump');
+      loadAndInitStage(1);
+      gameLoop();
+    }
+
+    function restartLevel() {
+      document.getElementById('gameover-overlay').classList.add('hidden');
+      document.getElementById('victory-overlay').classList.add('hidden');
+      
+      if (player.activeCheckpointIdx === 1) {
+        player.x = 760;
+        player.y = 200;
+      } else if (player.activeCheckpointIdx === 2) {
+        player.x = 1460;
+        player.y = 200;
+      } else {
+        player.x = activeLevel.spawnPoint.x;
+        player.y = activeLevel.spawnPoint.y;
+      }
+      
+      player.vx = 0;
+      player.vy = 0;
+      player.isGrounded = false;
+      player.jumpsLeft = 3;
+      player.dashesLeft = 3;
+      player.isDashing = false;
+      player.dashTimer = 0;
+      
+      isPlaying = true;
+      playSoundEffect('jump');
+    }
+
+    function nextLevel() {
+      document.getElementById('victory-overlay').classList.add('hidden');
+      isPlaying = true;
+      const nextS = Math.min(500, currentStage + 1);
+      loadAndInitStage(nextS);
+    }
+
+    // --- 메인 애니메이션 루프 ---
+    function gameLoop() {
+      requestAnimationFrame(gameLoop);
+      if(!isPlaying) return;
+
+      updatePhysics();
+      render();
+    }
+
+    // --- 물리 이동/가속도 업데이트 및 충돌 체크 ---
+    function updatePhysics() {
+      if (player.isDashing) {
+        player.vx = player.dashDir * physicsSettings.dashForce;
+        player.vy = 0;
+        player.dashTimer--;
+        if (player.dashTimer <= 0) {
+          player.isDashing = false;
+        }
+      } else {
+        let inputX = 0;
+        if (keys['a'] || keys['arrowleft'] || touchMovingLeft) {
+          inputX = -1;
+          player.lastDir = -1;
+        }
+        if (keys['d'] || keys['arrowright'] || touchMovingRight) {
+          inputX = 1;
+          player.lastDir = 1;
+        }
+
+        const isCurrentlyIce = checkIfOnPlatformType('ice');
+        const friction = isCurrentlyIce ? physicsSettings.frictionIce : physicsSettings.frictionGround;
+
+        player.vx = player.vx * friction + inputX * physicsSettings.runSpeed * (1 - friction);
+        player.vy += physicsSettings.gravity;
+      }
+
+      if (!player.isDashing) {
+        player.vx = Math.max(-12, Math.min(12, player.vx));
+      }
+      player.vy = Math.max(-16, Math.min(22, player.vy));
+
+      player.x += player.vx;
+      player.y += player.vy;
+
+      // 카메라 부드러운 스크롤 추적
+      camera.x = player.x - 300;
+      camera.y = Math.max(0, Math.min(0, player.y - 200));
+      if (camera.x < 0) camera.x = 0;
+      if (camera.x > activeLevel.width - 800) camera.x = activeLevel.width - 800;
+
+      // 움직이는 발판 및 사라지는 발판 처리
+      activeLevel.platforms.forEach(p => {
+        if (p.type === 'moving' && p.speed > 0) {
+          p.progress += p.speed * p.direction;
+          if (p.progress >= 100) {
+            p.progress = 100;
+            p.direction = -1;
+          } else if (p.progress <= 0) {
+            p.progress = 0;
+            p.direction = 1;
+          }
+
+          const oldX = p.x;
+          const oldY = p.y;
+          p.x = p.startX + (p.endX - p.startX) * (p.progress / 100);
+          p.y = p.startY + (p.endY - p.startY) * (p.progress / 100);
+
+          if (player.isGrounded && player.ridingPlatformId === p.id) {
+            player.x += (p.x - oldX);
+            player.y += (p.y - oldY);
+          }
+        }
+
+        if (p.type === 'disappearing' && p.touchedTime !== null) {
+          const dt = Date.now() - p.touchedTime;
+          if (dt > 1000) {
+            p.vanished = true;
+            if (player.ridingPlatformId === p.id) {
+              player.isGrounded = false;
+              player.ridingPlatformId = null;
+            }
+          } else {
+            p.opacity = Math.max(0, 1 - (dt / 1000));
+          }
+        }
+      });
+
+      let onGroundThisFrame = false;
+      let ridingPlatId = null;
+
+      // 충돌 검사
+      activeLevel.platforms.forEach(p => {
+        if (p.vanished) return;
+
+        if (
+          player.x < p.x + p.w &&
+          player.x + player.w > p.x &&
+          player.y < p.y + p.h &&
+          player.y + player.h > p.y
+        ) {
+          if (p.type === 'goal') {
+            triggerVictory();
+            return;
+          }
+
+          if (p.type === 'checkpoint') {
+            const chkIdx = p.id === 'chk1' ? 1 : 2;
+            if (player.activeCheckpointIdx < chkIdx) {
+              player.activeCheckpointIdx = chkIdx;
+              playSoundEffect('checkpoint');
+              
+              for(let i=0; i<15; i++) {
+                particles.push({
+                  x: p.x + p.w/2,
+                  y: p.y,
+                  vx: (Math.random() - 0.5) * 6,
+                  vy: -Math.random() * 4 - 2,
+                  size: Math.random() * 4 + 2,
+                  color: '#22d3ee',
+                  life: 35
+                });
+              }
+            }
+          }
+
+          if (p.type === 'hazard') {
+            triggerDeath();
+            return;
+          }
+
+          const overlapY = (player.vy > 0) && (player.y + player.h - player.vy <= p.y + 4);
+          if (overlapY) {
+            player.y = p.y - player.h;
+            player.vy = 0;
+            onGroundThisFrame = true;
+            ridingPlatId = p.id;
+
+            if (p.type === 'disappearing' && p.touchedTime === null) {
+              p.touchedTime = Date.now();
+            }
+          }
+        }
+      });
+
+      if (onGroundThisFrame) {
+        player.isGrounded = true;
+        player.jumpsLeft = 3;
+        player.dashesLeft = 3;
+        player.ridingPlatformId = ridingPlatId;
+      } else {
+        player.isGrounded = false;
+      }
+
+      // 화면 아래 추락 처리
+      if (player.y > 450) {
+        triggerDeath();
+      }
+
+      // 파티클 생명주기
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const pt = particles[i];
+        pt.x += pt.vx;
+        pt.y += pt.vy;
+        pt.life--;
+        if (pt.life <= 0) {
+          particles.splice(i, 1);
+        }
+      }
+    }
+
+    function checkIfOnPlatformType(type) {
+      if (!player.isGrounded || !player.ridingPlatformId) return false;
+      const rp = activeLevel.platforms.find(p => p.id === player.ridingPlatformId);
+      return rp && rp.type === type;
+    }
+
+    function triggerDeath() {
+      isPlaying = false;
+      player.lives--;
+      playSoundEffect('death');
+      document.getElementById('gameover-overlay').classList.remove('hidden');
+    }
+
+    function triggerVictory() {
+      isPlaying = false;
+      playSoundEffect('victory');
+      document.getElementById('victory-overlay').classList.remove('hidden');
+    }
+
+    // --- HTML5 Canvas 2D 그래픽 렌더링 ---
+    function render() {
+      ctx.clearRect(0, 0, 800, 400);
+
+      // 난이도별 우주 그라데이션 배경 구현
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      switch (activeLevel.difficulty) {
+        case 'VERY_EASY':
+          gradient.addColorStop(0, '#0f172a');
+          gradient.addColorStop(1, '#020617');
+          break;
+        case 'EASY':
+          gradient.addColorStop(0, '#022c22');
+          gradient.addColorStop(1, '#020617');
+          break;
+        case 'NORMAL':
+          gradient.addColorStop(0, '#164e63');
+          gradient.addColorStop(1, '#020617');
+          break;
+        case 'HARD':
+          gradient.addColorStop(0, '#451a03');
+          gradient.addColorStop(1, '#020617');
+          break;
+        case 'CHALLENGE':
+          gradient.addColorStop(0, '#3b0764');
+          gradient.addColorStop(1, '#020617');
+          break;
+        default:
+          gradient.addColorStop(0, '#311010');
+          gradient.addColorStop(1, '#020617');
+          break;
+      }
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 800, 400);
+      
+      // 별 무리 그리기
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      stars.forEach(s => {
+        const sx = (s.x - camera.x * s.speed + 800) % 800;
+        ctx.fillRect(sx, s.y, s.size, s.size);
+      });
+
+      // 사이버네틱스 미세 격자선 그리기
+      ctx.strokeStyle = 'rgba(51, 65, 85, 0.16)';
+      ctx.lineWidth = 1;
+      const gridSize = 40;
+      const startX = -Math.floor(camera.x) % gridSize;
+      for (let x = startX; x < 800; x += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, 400);
+        ctx.stroke();
+      }
+      for (let y = 0; y < 400; y += gridSize) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(800, y);
+        ctx.stroke();
+      }
+
+      ctx.save();
+      ctx.translate(-camera.x, -camera.y);
+
+      // 발판 렌더링
+      activeLevel.platforms.forEach(p => {
+        if (p.vanished) return;
+
+        ctx.save();
+        ctx.globalAlpha = p.opacity || 1.0;
+        
+        if (p.type === 'goal') {
+          ctx.fillStyle = '#22c55e';
+          ctx.fillRect(p.x, p.y, p.w, p.h);
+
+          ctx.fillStyle = '#eab308';
+          ctx.fillRect(p.x, p.y, 8, p.h);
+          ctx.fillRect(p.x + p.w - 8, p.y, 8, p.h);
+
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(p.x + 18, p.y - 45, 4, 45);
+
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.moveTo(p.x + 22, p.y - 45);
+          ctx.lineTo(p.x + 46, p.y - 34);
+          ctx.lineTo(p.x + 22, p.y - 23);
+          ctx.fill();
+        } 
+        else if (p.type === 'checkpoint') {
+          const isActive = (p.id === 'chk1' && player.activeCheckpointIdx >= 1) ||
+                           (p.id === 'chk2' && player.activeCheckpointIdx >= 2);
+          
+          ctx.fillStyle = isActive ? 'rgba(34, 197, 94, 0.15)' : 'rgba(71, 85, 105, 0.25)';
+          ctx.fillRect(p.x, p.y, p.w, p.h);
+
+          ctx.strokeStyle = isActive ? '#22c55e' : '#64748b';
+          ctx.lineWidth = 1.8;
+          ctx.strokeRect(p.x, p.y, p.w, p.h);
+
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillRect(p.x + p.w / 2 - 2, p.y - 35, 4, 35);
+
+          const beaconGrad = ctx.createRadialGradient(
+            p.x + p.w / 2, p.y - 35, 1,
+            p.x + p.w / 2, p.y - 35, 8
+          );
+          beaconGrad.addColorStop(0, isActive ? '#a7f3d0' : '#cbd5e1');
+          beaconGrad.addColorStop(1, isActive ? '#22c55e' : '#475569');
+          ctx.fillStyle = beaconGrad;
+          ctx.beginPath();
+          ctx.arc(p.x + p.w / 2, p.y - 35, 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        else if (p.type === 'hazard') {
+          ctx.fillStyle = '#f43f5e';
+          const spikeWidth = 14;
+          const numSpikes = Math.floor(p.w / spikeWidth);
+          ctx.beginPath();
+          for (let i = 0; i < numSpikes; i++) {
+            const sx = p.x + i * spikeWidth;
+            ctx.moveTo(sx, p.y + p.h);
+            ctx.lineTo(sx + spikeWidth / 2, p.y);
+            ctx.lineTo(sx + spikeWidth, p.y + p.h);
+          }
+          ctx.closePath();
+          ctx.fill();
+
+          ctx.fillStyle = '#991b1b';
+          ctx.fillRect(p.x, p.y + p.h - 5, p.w, 5);
+        }
+        else {
+          let platformColor = '#334155';
+          let patternColor = '#475569';
+
+          if (p.type === 'ice') {
+            platformColor = '#06b6d4';
+            patternColor = '#22d3ee';
+          } else if (p.type === 'disappearing') {
+            platformColor = '#f59e0b';
+            patternColor = '#fbbf24';
+          } else if (p.type === 'moving') {
+            platformColor = '#8b5cf6';
+            patternColor = '#a78bfa';
+          } else if (p.color) {
+            platformColor = p.color;
+          }
+
+          ctx.fillStyle = platformColor;
+          ctx.fillRect(p.x, p.y, p.w, p.h);
+
+          ctx.fillStyle = patternColor;
+          ctx.fillRect(p.x, p.y, p.w, 4);
+
+          ctx.strokeStyle = patternColor + '20';
+          ctx.lineWidth = 1;
+          for (let lineX = p.x; lineX < p.x + p.w; lineX += 16) {
+            ctx.beginPath();
+            ctx.moveTo(lineX, p.y);
+            ctx.lineTo(lineX + 8, p.y + p.h);
+            ctx.stroke();
+          }
+        }
+
+        ctx.restore();
+      });
+
+      // 파티클 그리기
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.life / 35;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 스쿼시 & 스트레치 애니메이션이 포함된 고양이 플레이어 그리기
+      const isFacingRight = player.lastDir === 1;
+
+      let scaleX = 1.0;
+      let scaleY = 1.0;
+      let angle = 0;
+      let tailAngle = 0;
+      let legOffset = 0;
+
+      if (player.isDashing) {
+        scaleX = 1.35;
+        scaleY = 0.75;
+        angle = isFacingRight ? 0.08 : -0.08;
+        tailAngle = isFacingRight ? -0.4 : 0.4;
+      } else if (!player.isGrounded) {
+        if (player.vy < 0) {
+          scaleX = 0.82;
+          scaleY = 1.22;
+          angle = isFacingRight ? 0.05 : -0.05;
+          tailAngle = 0.4; 
+        } else {
+          scaleX = 1.1;
+          scaleY = 0.9;
+          tailAngle = -0.3;
+        }
+      } else {
+        if (Math.abs(player.vx) > 0.1) {
+          const runCycle = Date.now() / 70;
+          scaleX = 1.0 + Math.sin(runCycle) * 0.08;
+          scaleY = 1.0 - Math.sin(runCycle) * 0.08;
+          angle = (isFacingRight ? 0.04 : -0.04) * Math.sin(runCycle);
+          tailAngle = Math.sin(runCycle) * 0.25;
+          legOffset = Math.sin(runCycle) * 3;
+        } else {
+          const idleCycle = Date.now() / 250;
+          scaleX = 1.0 + Math.sin(idleCycle) * 0.02;
+          scaleY = 1.0 - Math.sin(idleCycle) * 0.02;
+          tailAngle = Math.sin(idleCycle * 0.5) * 0.1;
+        }
+      }
+
+      ctx.save();
+      const pw = player.w;
+      const ph = player.h;
+      const centerX = player.x + pw / 2;
+      const centerY = player.y + ph;
+
+      ctx.translate(centerX, centerY);
+      ctx.scale(scaleX, scaleY);
+      ctx.rotate(angle);
+
+      const rx = -pw / 2;
+      const ry = -ph;
+
+      // 대시/기본 백라이트 오라 이펙트
+      ctx.save();
+      const glowRadius = ph + (player.isDashing ? 10 : 4);
+      const glowGrad = ctx.createRadialGradient(0, -ph / 2, 1, 0, -ph / 2, glowRadius);
+      glowGrad.addColorStop(0, player.isDashing ? 'rgba(192, 132, 252, 0.45)' : 'rgba(251, 146, 60, 0.35)');
+      glowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = glowGrad;
+      ctx.beginPath();
+      ctx.arc(0, -ph / 2, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // 고양이 꼬리 렌더링
+      ctx.save();
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 3.5;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      const tailBaseX = isFacingRight ? -6 : 6;
+      const tailBaseY = -6;
+      ctx.moveTo(tailBaseX, tailBaseY);
+      
+      const tailDir = isFacingRight ? -1 : 1;
+      const c1x = tailBaseX + tailDir * 4;
+      const c1y = tailBaseY - 4 - tailAngle * 5;
+      const c2x = tailBaseX + tailDir * 8 + Math.sin(tailAngle) * 3;
+      const c2y = tailBaseY - 12 - tailAngle * 10;
+      const endX = tailBaseX + tailDir * 6 + Math.cos(tailAngle) * 4;
+      const endY = tailBaseY - 16;
+      
+      ctx.bezierCurveTo(c1x, c1y, c2x, c2y, endX, endY);
+      ctx.stroke();
+      
+      // 흰 꼬리 끝부분 깃털
+      ctx.strokeStyle = '#ffedd5';
+      ctx.lineWidth = 3.3;
+      ctx.beginPath();
+      ctx.moveTo(c2x, c2y);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+      ctx.restore();
+
+      // 고양이 발 그리기
+      ctx.fillStyle = '#ea580c';
+      ctx.beginPath();
+      let backPawX = -5;
+      let backPawY = 0;
+      let frontPawX = 5;
+      let frontPawY = 0;
+      if (!player.isGrounded) {
+        if (player.vy < 0) {
+          backPawX = -7; backPawY = 2;
+          frontPawX = 7; frontPawY = 2;
+        } else {
+          backPawX = -4; backPawY = 4;
+          frontPawX = 4; frontPawY = 4;
+        }
+      } else if (Math.abs(player.vx) > 0.1) {
+        backPawX = -5 - legOffset;
+        backPawY = Math.abs(legOffset) > 1.5 ? -2 : 0;
+        frontPawX = 5 + legOffset;
+        frontPawY = Math.abs(legOffset) <= 1.5 ? -2 : 0;
+      }
+      ctx.arc(backPawX, backPawY - 1.5, 3, 0, Math.PI * 2);
+      ctx.arc(frontPawX, frontPawY - 1.5, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 고양이 주황색 털 몸체
+      ctx.fillStyle = player.isDashing ? '#c084fc' : '#f97316';
+      const radius = 6;
+      ctx.beginPath();
+      ctx.moveTo(rx + radius, ry);
+      ctx.lineTo(rx + pw - radius, ry);
+      ctx.quadraticCurveTo(rx + pw, ry, rx + pw, ry + radius);
+      ctx.lineTo(rx + pw, ry + ph - radius);
+      ctx.quadraticCurveTo(rx + pw, ry + ph, rx + pw - radius, ry + ph);
+      ctx.lineTo(rx + radius, ry + ph);
+      ctx.quadraticCurveTo(rx, ry + ph, rx, ry + ph - radius);
+      ctx.lineTo(rx, ry + radius);
+      ctx.quadraticCurveTo(rx, ry, rx + radius, ry);
+      ctx.closePath();
+      ctx.fill();
+
+      // 크림색 가슴 배 패치
+      ctx.fillStyle = '#ffedd5';
+      ctx.beginPath();
+      ctx.ellipse(0, -6, 6, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 고양이 이마 줄무늬 데코
+      ctx.fillStyle = player.isDashing ? '#701a75' : '#c2410c';
+      ctx.fillRect(-2, ry, 1, 3);
+      ctx.fillRect(1, ry, 1, 3);
+      if (isFacingRight) {
+        ctx.fillRect(-10, -14, 3, 1.5);
+        ctx.fillRect(-10, -9, 3, 1.5);
+      } else {
+        ctx.fillRect(7, -14, 3, 1.5);
+        ctx.fillRect(7, -9, 3, 1.5);
+      }
+
+      // 귀 귀엽게 쫑긋 세우기
+      ctx.fillStyle = player.isDashing ? '#c084fc' : '#f97316';
+      ctx.beginPath();
+      ctx.moveTo(-9, ry);
+      ctx.lineTo(-7 + (player.vy < 0 ? -1 : 0), ry - 6);
+      ctx.lineTo(-3, ry);
+      ctx.moveTo(3, ry);
+      ctx.lineTo(7 + (player.vy < 0 ? 1 : 0), ry - 6);
+      ctx.lineTo(9, ry);
+      ctx.fill();
+
+      // 귓속 핑크 스킨
+      ctx.fillStyle = '#fda4af';
+      ctx.beginPath();
+      ctx.moveTo(-8, ry);
+      ctx.lineTo(-7 + (player.vy < 0 ? -0.8 : 0), ry - 4);
+      ctx.lineTo(-4, ry);
+      ctx.moveTo(4, ry);
+      ctx.lineTo(7 + (player.vy < 0 ? 0.8 : 0), ry - 4);
+      ctx.lineTo(8, ry);
+      ctx.fill();
+
+      // 발광하는 눈빛동자 (대시시 핑크, 평소 시안 민트광)
+      const eyeColor = player.isDashing ? '#f5d0fe' : '#22d3ee';
+      ctx.fillStyle = eyeColor;
+      ctx.strokeStyle = eyeColor;
+      ctx.lineWidth = 1.5;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      const eyeY = -14;
+
+      if (player.isDashing) {
+        if (isFacingRight) {
+          ctx.beginPath(); ctx.moveTo(2, eyeY); ctx.lineTo(9, eyeY); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.moveTo(-9, eyeY); ctx.lineTo(-2, eyeY); ctx.stroke();
+        }
+      } else if (!player.isGrounded) {
+        if (isFacingRight) {
+          ctx.beginPath(); ctx.moveTo(1, eyeY + 1.5); ctx.quadraticCurveTo(3, eyeY - 1.5, 5, eyeY + 1.5); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(6, eyeY + 1.5); ctx.quadraticCurveTo(8, eyeY - 1.5, 10, eyeY + 1.5); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.moveTo(-10, eyeY + 1.5); ctx.quadraticCurveTo(-8, eyeY - 1.5, -6, eyeY + 1.5); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-5, eyeY + 1.5); ctx.quadraticCurveTo(-3, eyeY - 1.5, -1, eyeY + 1.5); ctx.stroke();
+        }
+      } else {
+        if (isFacingRight) {
+          ctx.fillRect(2.5, eyeY - 2, 2.5, 4);
+          ctx.fillRect(6.5, eyeY - 2, 2.5, 4);
+        } else {
+          ctx.fillRect(-9, eyeY - 2, 2.5, 4);
+          ctx.fillRect(-5, eyeY - 2, 2.5, 4);
+        }
+      }
+
+      // 분홍색 코 및 미세 수염
+      ctx.fillStyle = '#f43f5e';
+      const noseX = isFacingRight ? 5.5 : -5.5;
+      const noseY = -11;
+      ctx.beginPath();
+      ctx.arc(noseX, noseY, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+      
+      ctx.strokeStyle = '#ffedd555';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      if (isFacingRight) {
+        ctx.moveTo(8, -11); ctx.lineTo(12, -12);
+        ctx.moveTo(8, -10); ctx.lineTo(12, -10);
+        ctx.moveTo(8, -9); ctx.lineTo(12, -8);
+      } else {
+        ctx.moveTo(-8, -11); ctx.lineTo(-12, -12);
+        ctx.moveTo(-8, -10); ctx.lineTo(-12, -10);
+        ctx.moveTo(-8, -9); ctx.lineTo(-12, -8);
+      }
+      ctx.stroke();
+
+      // 공중 대시 게이지 목걸이 방울
+      if (player.dashesLeft > 0) {
+        ctx.fillStyle = '#c084fc';
+        const crystalX = isFacingRight ? 2 : -2;
+        ctx.beginPath();
+        ctx.moveTo(crystalX, -5);
+        ctx.lineTo(crystalX - 1.5, -3.5);
+        ctx.lineTo(crystalX, -2);
+        ctx.lineTo(crystalX + 1.5, -3.5);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      ctx.restore();
+    }
+  </script>
+</body>
+</html>
